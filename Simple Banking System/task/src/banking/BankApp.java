@@ -14,6 +14,7 @@ public class BankApp {
              new Scanner(System.in);
 
     public static void run() {
+        //From main here
         bankApp();
     }
 

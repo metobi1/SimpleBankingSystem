@@ -3,6 +3,7 @@ package banking;
 import java.util.Random;
 
 public class CreditCard {
+    // The credit card generated
 
     private final int bankIdentificationNumber;
     private final int checkSum;
