@@ -1,7 +1,6 @@
 package banking;
 
 public class Account {
-    //The bank account
 
     private int balance;
     private final CreditCard creditCard;

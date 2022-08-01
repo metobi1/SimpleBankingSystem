@@ -14,7 +14,6 @@ public class BankApp {
              new Scanner(System.in);
 
     public static void run() {
-        //From main here
         bankApp();
     }
 
@@ -26,7 +25,7 @@ public class BankApp {
 
             if ("1".equals(option)) {
                 Account account = new Account(0,
-                        new CreditCard(400000, 9));
+                        new CreditCard(400000));
                 accounts.add(account);
 
                 displayCardDetails(account.getCreditCard().getCreditCardNumber(),

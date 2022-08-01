@@ -3,27 +3,55 @@ package banking;
 import java.util.Random;
 
 public class CreditCard {
-    // The credit card generated
 
     private final int bankIdentificationNumber;
-    private final int checkSum;
+    //private final int checkSum;
 
     private final String creditCardNumber;
     private final String creditCardPin;
     private final int PIN_LENGTH = 4;
     private final Random random = new Random();
 
-    public CreditCard(int bankIdentificationNumber, int checkSum) {
+    public CreditCard(int bankIdentificationNumber) {
         this.bankIdentificationNumber = bankIdentificationNumber;
-        this.checkSum = checkSum;
         this.creditCardNumber = accountIdentifier();
         this.creditCardPin = generateRandomStrInt(PIN_LENGTH);
     }
 
     private String accountIdentifier() {
         int accIdentifierLen = 9; //accountIdentifierLength();
+        String randomStrInt = generateRandomStrInt(accIdentifierLen);
+        int checkSum = getCheckSum(bankIdentificationNumber + randomStrInt);
+
         return String.format( bankIdentificationNumber +
-                generateRandomStrInt(accIdentifierLen) + checkSum);
+                randomStrInt  + checkSum);
+    }
+
+    private int getCheckSum(String strInt) {
+
+        StringBuilder stringBuilder = new StringBuilder(strInt);
+        int strIntSum = 0;
+        for (int i = 0; i < strInt.length(); i++) {
+            if (i % 2 == 0) {
+                int getInt = Integer.parseInt(stringBuilder.substring(i, i + 1));
+                getInt = getInt * 2;
+                getInt = getInt > 9 ? getInt - 9 : getInt;
+                stringBuilder.replace(i, i + 1, String.valueOf(getInt));
+            }
+            strIntSum += Integer.parseInt(stringBuilder.substring(i, i + 1));
+        }
+        return multipleOfTen(strIntSum) - strIntSum;
+    }
+
+    private int multipleOfTen(int num) {
+
+        for (int i = 0; i < 10; i++) {
+            int multOfTen = num + i;
+            if (multOfTen % 10 == 0) {
+                return multOfTen;
+            }
+        }
+        return 0;
     }
 
     /*private int accountIdentifierLength() {
