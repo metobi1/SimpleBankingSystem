@@ -2,6 +2,7 @@ package banking;
 
 public class Main {
     public static void main(String[] args) {
-        BankApp.run();
+
+        BankApp.run(args[1]);
     }
 }

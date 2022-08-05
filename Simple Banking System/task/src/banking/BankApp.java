@@ -1,24 +1,23 @@
 package banking;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import java.util.Scanner;
 
 public class BankApp {
 
-    private static final List<Account> accounts =
-            new ArrayList<>();
     private static boolean exit = false;
      private static final Scanner scanner =
              new Scanner(System.in);
 
-    public static void run() {
-        bankApp();
+    public static void run(String fileName) {
+        bankApp(fileName);
     }
 
-    private static void bankApp() {
+    private static void bankApp(String fileName) {
+
+        DataBase dataBase = getDataBase(fileName);
+        int id = 1;
         while (!exit) {
+
             displayBankingOptions();
             String option = getInput();
             System.out.println();
@@ -26,7 +25,9 @@ public class BankApp {
             if ("1".equals(option)) {
                 Account account = new Account(0,
                         new CreditCard(400000));
-                accounts.add(account);
+                dataBase.insertValues(id, account.getCreditCard().getCreditCardNumber(),
+                        account.getCreditCard().getCreditCardPin(), account.getBalance());
+                //accounts.add(account);
 
                 displayCardDetails(account.getCreditCard().getCreditCardNumber(),
                         account.getCreditCard().getCreditCardPin());
@@ -37,27 +38,15 @@ public class BankApp {
                 System.out.println("Your card PIN:");
                 String cCardPinInput = getInput();
 
-                for (int i = 0; i < accounts.size(); i++) {
-                    Account account = accounts.get(i);
-                    String cCardStr = account.getCreditCard()
-                            .getCreditCardNumber();
-                    if (Objects.equals(cCardInput, cCardStr)) {
-                        String cCardPin = account.getCreditCard()
-                                .getCreditCardPin();
-                        if (Objects.equals(cCardPinInput, cCardPin)) {
-                            System.out.println();
-                            System.out.println("You have successfully logged in!");
-                            System.out.println();
-                            navAccount(account);
-                            System.out.println();
-                        } else {
-                            System.out.println();
-                            System.out.println("Wrong card number or PIN!");
-                        }
-                    } else if (i == accounts.size() - 1) {
-                        System.out.println();
-                        System.out.println("Wrong card number or PIN!");
-                    }
+                String[] getAccount = dataBase.getAccount(cCardInput, cCardPinInput);
+
+                System.out.println();
+                if (getAccount == null) {
+                    System.out.println("Wrong card number or PIN!");
+                } else {
+                    System.out.println("You have successfully logged in!");
+                    System.out.println();
+                    navAccount(getAccount[2]);
                 }
 
             } else if ("0".equals(option)) {
@@ -68,7 +57,14 @@ public class BankApp {
         }
     }
 
-    private static void navAccount(Account account) {
+    private static DataBase getDataBase(String fileName) {
+        DataBase dataBase = new DataBase(fileName);
+        dataBase.loadJdbcStatement();
+        dataBase.createTable();
+        return dataBase;
+    }
+
+    private static void navAccount(String balance) {
 
         while (true) {
             displayNavAccountOptions();
@@ -76,11 +72,10 @@ public class BankApp {
             System.out.println();
 
             if ("1".equals(option)) {
-                System.out.printf("Balance: %s%n", account
-                        .getBalance());
+                System.out.printf("Balance: %s%n", balance);
 
             } else if ("2".equals(option)) {
-                System.out.println("\nYou have successfully logged out!");
+                System.out.println("You have successfully logged out!");
                 break;
 
             } else if ("0".equals(option)) {
@@ -110,7 +105,6 @@ public class BankApp {
         System.out.println("Your card PIN:");
         System.out.println(pin);
     }
-
 
     private static String getInput() {
         return scanner.next();
