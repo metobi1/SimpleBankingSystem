@@ -5,14 +5,12 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Objects;
 
 public class DataBase {
 
     private final String fileName;
-    private SQLiteDataSource dataSource =
+    private final SQLiteDataSource dataSource =
             new SQLiteDataSource();
-    private Statement statement = null;
 
     public DataBase(String fileName) {
         this.fileName = fileName;
@@ -24,28 +22,64 @@ public class DataBase {
         return dataSource;
     }
 
-    private Connection connectDataBase() {
-        try {
-            Connection con = loadUrl().getConnection();
-           return con;
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-        return null;
-    }
+    public void loadUpdateStatement(String action) {
 
-    public void loadJdbcStatement() {
-        Connection con = connectDataBase();
-        try {
-            if (con != null) {
-                statement = con.createStatement();
+        try (Connection con = loadUrl().getConnection()){
+            try (Statement statement = con.createStatement()) {
+                if ("create".equals(action)) {
+                    createTable(statement);
+                } else {
+                    insertOrUpdate(statement, action);
+                }
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
     }
 
-    public void createTable() {
+    public String loadReturnStatement(String comm, String type, String col) {
+
+        try (Connection con = loadUrl().getConnection()){
+            try (Statement statement = con.createStatement()) {
+                try (ResultSet resultSet = statement.executeQuery(comm)){
+                    if (resultSet.isBeforeFirst()) {
+                        if ("string".equals(type)) {
+                            return resultSet.getString(col);
+                        } else if ("int".equals(type)) {
+                            return String.valueOf(resultSet.getInt(col));
+                        }
+                    } else {
+                        return "";
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return "";
+    }
+
+    public void transaction(String sendAction, String receiveAction) {
+        try (Connection con = loadUrl().getConnection()){
+            con.setAutoCommit(false);
+            try (Statement statement = con.createStatement()) {
+                insertOrUpdate(statement, sendAction);
+                insertOrUpdate(statement, receiveAction);
+                con.commit();
+            } catch (SQLException e) {
+                try {
+                    System.err.print("Transaction is being rolled back");
+                    con.rollback();
+                } catch (SQLException excep) {
+                    excep.printStackTrace();
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void createTable(Statement statement) {
         try {
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS card(" +
                     "id INTEGER," +
@@ -57,42 +91,11 @@ public class DataBase {
         }
     }
 
-    public void insertValues(int id, String cardNum,
-                             String pin, int balance) {
-        String updateValues = String.format("INSERT INTO card VALUES " +
-                "(%d, %s, %s, %d)", id, cardNum, pin, balance);
+    public void insertOrUpdate(Statement statement, String insertOrUpdate) {
         try {
-            statement.executeUpdate(updateValues);
+            statement.executeUpdate(insertOrUpdate);
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-    }
-
-    public ResultSet getResultSet() {
-        try {
-            ResultSet accounts = statement.executeQuery("SELECT * FROM card");
-            return accounts;
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-        return null;
-    }
-
-    public String[] getAccount(String card, String pin) {
-        try {
-            ResultSet resultSet = getResultSet();
-            while (resultSet.next()) {
-                String cCardStr = resultSet.getString("number");
-                String cCardPin = resultSet.getString("pin");
-                int balance = resultSet.getInt("balance");
-                String bal = String.valueOf(balance);
-                if (Objects.equals(card, cCardStr) && Objects.equals(pin, cCardPin)) {
-                    return new String[] {cCardStr, cCardPin, bal};
-                }
-            }
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-        return null;
     }
 }

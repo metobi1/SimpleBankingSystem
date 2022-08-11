@@ -27,7 +27,7 @@ public class CreditCard {
                 randomStrInt  + checkSum);
     }
 
-    private int getCheckSum(String strInt) {
+    static int getCheckSum(String strInt) {
 
         StringBuilder stringBuilder = new StringBuilder(strInt);
         int strIntSum = 0;
@@ -43,7 +43,7 @@ public class CreditCard {
         return multipleOfTen(strIntSum) - strIntSum;
     }
 
-    private int multipleOfTen(int num) {
+    private static int multipleOfTen(int num) {
 
         for (int i = 0; i < 10; i++) {
             int multOfTen = num + i;
